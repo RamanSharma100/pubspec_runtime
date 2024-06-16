@@ -13,6 +13,7 @@ export 'src/pubspec_runtime_base.dart'
         PubspecEditor,
         watchForDependencyDownloads,
         isDependencyDownloading,
+        DependencyManager,
         runPubGet;
 export "src/dependency.dart";
 export "src/parser.dart" show Parser;

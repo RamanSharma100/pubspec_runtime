@@ -1,6 +1,5 @@
-import 'package:pubspec_runtime/pubspec_runtime.dart';
-import 'package:test/expect.dart';
 import 'package:test/test.dart';
+import 'package:pubspec_runtime/pubspec_runtime.dart';
 
 void main() {
   group("Change Dependencies at runtime", () {
@@ -53,6 +52,35 @@ void main() {
       // Validate dev dependency is persisted
       expect(
           pubspecEditor2.devDependencies.list, anyElement(dependency.toMap()));
+    });
+  });
+
+  group("apply Add, remove , exists operations yaml keys", () {
+    final pubspecEditor = PubspecEditor();
+
+    test("Add a key value pair", () {
+      final key = 'key';
+      final value = 'value';
+      pubspecEditor.add(key, value);
+
+      expect(pubspecEditor.get(key), value);
+    });
+
+    test("Remove a key value pair", () {
+      final key = 'key';
+      final value = 'value';
+      pubspecEditor.add(key, value);
+      pubspecEditor.remove(key);
+
+      expect(pubspecEditor.get(key), null);
+    });
+
+    test("Check if a key exists", () {
+      final key = 'key';
+      final value = 'value';
+      pubspecEditor.add(key, value);
+
+      expect(pubspecEditor.exists(key), true);
     });
   });
 }

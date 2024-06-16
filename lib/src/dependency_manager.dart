@@ -55,10 +55,15 @@ class DependencyManager {
   void add(Dependency dependency) {
     final keys = dependency.isDev ? 'dev_dependencies' : 'dependencies';
 
+    print(_yamlMap[keys]);
+
     if (dependencies.any((element) => element.name == dependency.name)) {
       update(dependency);
     } else {
       dependencies.add(dependency);
+      if (_yamlMap[keys] == null) {
+        _yamlMap[keys] = {};
+      }
       _yamlMap[keys]["list"] = dependencies.map((e) => e.toMap()).toList();
     }
   }
@@ -75,6 +80,9 @@ class DependencyManager {
 
     if (dependencies.any((element) => element.name == name)) {
       dependencies.removeWhere((element) => element.name == name);
+      if (_yamlMap[keys] == null) {
+        _yamlMap[keys] = {};
+      }
       _yamlMap[keys]["list"] = dependencies.map((e) => e.toMap()).toList();
       return true;
     }
@@ -96,6 +104,9 @@ class DependencyManager {
     if (dependencies.any((element) => element.name == dependency.name)) {
       dependencies.removeWhere((element) => element.name == dependency.name);
       dependencies.add(dependency);
+      if (_yamlMap[keys] == null) {
+        _yamlMap[keys] = {};
+      }
       _yamlMap[keys]["list"] = dependencies.map((e) => e.toMap()).toList();
       return true;
     }

@@ -64,4 +64,75 @@ class PubspecEditor {
 
     return _filePath;
   }
+
+  /// Get the content of the `pubspec.yaml` file.
+  ///
+  /// Throws a [FileNotFoundException] if the specified file does not exist.
+  ///
+  /// Returns the content of the `pubspec.yaml` file.
+  Map<String, dynamic> get content {
+    final file = File(_filePath);
+    if (!file.existsSync()) {
+      throw FileNotFoundException('File not found: $_filePath');
+    }
+
+    return _yamlMap;
+  }
+
+  /// Add key value pair to the `pubspec.yaml` file.
+  ///
+  /// The [key] parameter is the key to add.
+  ///
+  /// The [value] parameter is the value to add.
+  dynamic add(String key, dynamic value) {
+    if (key == 'dependencies' || key == 'dev_dependencies') {
+      throw Exception(
+          'Use dependencies.add() or devDependencies.add() to add dependencies');
+    }
+
+    _yamlMap[key] = value;
+
+    return _yamlMap;
+  }
+
+  /// Remove key value pair from the `pubspec.yaml` file.
+  ///
+  /// The [key] parameter is the key to remove.
+  ///
+  /// Returns the updated content of the `pubspec.yaml` file.
+  dynamic remove(String key) {
+    if (!_yamlMap.containsKey(key)) {
+      throw Exception('Key not found: $key');
+    }
+    if (key == 'dependencies' || key == 'dev_dependencies') {
+      throw Exception(
+          'Use dependencies.remove() or devDependencies.remove() to remove dependencies');
+    }
+    _yamlMap.remove(key);
+    return _yamlMap;
+  }
+
+  /// Get the value of a key from the `pubspec.yaml` file.
+  ///
+  /// The [key] parameter is the key to get.
+  ///
+  /// Returns the value of the key if it exists, `null` otherwise.
+  dynamic get(String key) {
+    if (key == 'dependencies') {
+      return dependencies.list;
+    }
+    if (key == 'dev_dependencies') {
+      return devDependencies.list;
+    }
+    return _yamlMap[key];
+  }
+
+  /// Check if a key exists in the `pubspec.yaml` file.
+  ///
+  /// The [key] parameter is the key to check.
+  ///
+  /// Returns `true` if the key exists, `false` otherwise.
+  bool exists(String key) {
+    return _yamlMap.containsKey(key);
+  }
 }

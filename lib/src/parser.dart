@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:pubspec_runtime/src/dependency.dart';
+import 'package:pubspec_runtime/src/exceptions/index.dart';
 
 /// class Parser used to parse the yaml file
 class Parser {
@@ -183,5 +185,21 @@ class Parser {
     });
 
     return buffer.toString();
+  }
+
+  /// Parse the content of a YAML file.
+  ///
+  /// The [content] parameter is the content of the file to parse.
+  ///
+  /// Returns a map of the parsed content.
+  Map<String, dynamic> parseFile(String filePath) {
+    final file = File(filePath);
+    if (!file.existsSync()) {
+      throw FileNotFoundException('File not found: $filePath');
+    }
+
+    final content = file.readAsStringSync();
+
+    return parse(content);
   }
 }
