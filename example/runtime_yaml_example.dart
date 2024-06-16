@@ -1,6 +1,4 @@
-import 'dart:io';
 import 'package:pubspec_runtime/pubspec_runtime.dart';
-import 'package:pubspec_runtime/src/dependency.dart';
 
 void main() async {
   final pubspecEditor = PubspecEditor();
@@ -20,4 +18,13 @@ void main() async {
 
   print("Saving changes...");
   pubspecEditor.save();
+
+  print("Changes saved successfully!");
+
+  print("Running pub get...");
+  runPubGet()
+      .then((value) => print(
+          "Pub get executed successfully with exit code: ${value.exitCode}"))
+      .catchError(
+          (error) => print("Error occurred while executing pub get: $error"));
 }

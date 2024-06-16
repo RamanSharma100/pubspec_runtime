@@ -15,10 +15,8 @@ dev_dependencies:
   test: ^1.24.0
 # flutter:
 #   uses-material-design: true
-
 #   assets:
 #     - assets/
-
 #   fonts:
 #     - family: Roboto
 #       fonts:

@@ -6,6 +6,7 @@ import "dependency.dart";
 import "exceptions/file_not_found_exception.dart";
 
 part 'dependency_manager.dart';
+part 'dependency_download_watcher.dart';
 
 /// A Dart library for managing the `pubspec.yaml` file at runtime.
 ///
@@ -15,7 +16,6 @@ class PubspecEditor {
   late final DependencyManager dependencies;
   late final DependencyManager devDependencies;
   late final Parser parser = Parser();
-  late Map<int, dynamic> comments = {};
   // late final AssetManager assets;
 
   late final String _filePath;
@@ -34,7 +34,6 @@ class PubspecEditor {
             .any((entity) => entity.path.endsWith('pubspec.yaml'))) {
       scriptDir = scriptDir.parent;
     }
-    print('Root directory of the project: ${scriptDir.path}');
     final filePath = '${scriptDir.path}/pubspec.yaml';
     _filePath = filePath;
     final file = File(filePath);
@@ -53,16 +52,16 @@ class PubspecEditor {
   /// Save the changes to the `pubspec.yaml` file.
   ///
   /// Throws a [FileNotFoundException] if the specified file does not exist.
-  void save() {
+  String save() {
     final file = File(_filePath);
-    print(_yamlMap);
     if (!file.existsSync()) {
       throw FileNotFoundException('File not found: $_filePath');
     }
 
     final yamlString = parser.mapToYamlString(_yamlMap);
 
-    print("YAML String: $yamlString");
-    // file.writeAsStringSync(yamlString);
+    file.writeAsStringSync(yamlString);
+
+    return _filePath;
   }
 }

@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:pubspec_runtime/src/dependency.dart';
 
 /// class Parser used to parse the yaml file
@@ -9,8 +7,6 @@ class Parser {
   /// The [content] parameter is the content of the file to parse.
   /// Returns a map of the parsed content.
   Map<String, dynamic> parse(String content) {
-    print("-------------------Parsing-------------------");
-
     final lines = content.split('\n');
     final result = <String, dynamic>{};
     final stack = <Map<String, dynamic>>[result];
@@ -20,13 +16,16 @@ class Parser {
 
     for (String line in lines) {
       int lineNumber = lines.indexOf(line);
-      if (line.trim().isEmpty) {
-        (stack.last)["space$lineNumber"] = {"indent": currentIndent};
-        continue;
-      }
-
       final indent = line.indexOf(RegExp(r'[^\s]'));
       line = line.trim();
+
+      if (line.trim().isEmpty) {
+        (stack.last)["space$lineNumber"] = {
+          "indent": currentIndent,
+          "line": lineNumber
+        };
+        continue;
+      }
 
       while (indent <= currentIndent) {
         stack.removeLast();
@@ -36,7 +35,8 @@ class Parser {
       if (line.startsWith("#")) {
         (stack.last)["comment$lineNumber"] = {
           "content": line,
-          indent: currentIndent
+          "indent": currentIndent,
+          "line": lineNumber
         };
         continue;
       }
@@ -86,10 +86,18 @@ class Parser {
                 stack.last["list"] = devDependencies;
               }
             } else {
-              (stack.last)[key] = {value: parseValue(value), line: lineNumber};
+              (stack.last)[key] = {
+                "value": parseValue(value),
+                "line": lineNumber,
+                "indent": currentIndent,
+              };
             }
           } else {
-            (stack.last)[key] = {value: parseValue(value), line: lineNumber};
+            (stack.last)[key] = {
+              "value": parseValue(value),
+              "line": lineNumber,
+              "indent": currentIndent,
+            };
           }
         } else {
           final newMap = <String, dynamic>{};
@@ -114,31 +122,63 @@ class Parser {
   /// Convert a map to a YAML string.
   ///
   /// The [map] parameter is the map to convert.
-  String mapToYamlString(Map<dynamic, dynamic> yamlMap,
-      {int indent = 0, Map<int, dynamic> comments = const {}}) {
+  String mapToYamlString(Map<dynamic, dynamic> yamlMap, {int indent = 0}) {
     final buffer = StringBuffer();
     final spaces = ' ' * indent;
 
     yamlMap.forEach((key, value) {
-      if (value is Map) {
-        buffer.writeln('$spaces$key:');
-        if (value.containsKey("isDev")) {
-          print("Dependency found in mapToYamlString");
+      if (key.contains(RegExp(r'^space[0-9]+$'))) {
+        buffer.writeln(spaces);
+      } else if (key.contains(RegExp(r'^comment[0-9]+$'))) {
+        buffer.writeln(spaces + value["content"]);
+      } else if (value is Map) {
+        if (key == "dependencies" || key == "dev_dependencies") {
+          buffer.writeln("$key:");
+          buffer.writeln(
+            _mapDependenciesToYamlString(value, indent: indent + 2),
+          );
         } else {
-          buffer.write(mapToYamlString(value, indent: indent + 2));
-        }
-      } else if (value is List) {
-        buffer.writeln('$spaces$key:');
-        for (var item in value) {
-          if (item is Map) {
-            buffer.writeln('$spaces  -');
-            buffer.write(mapToYamlString(item, indent: indent + 4));
+          if (value.containsKey("value")) {
+            buffer.writeln("$spaces$key: ${value["value"]}");
           } else {
-            buffer.writeln('$spaces  - $item');
+            buffer.writeln("$spaces$key:");
+            buffer.writeln(
+              mapToYamlString(value, indent: indent + 2),
+            );
           }
         }
       } else {
-        buffer.writeln('$spaces$key: $value');
+        buffer.writeln("$spaces$key:");
+        buffer.writeln(
+          mapToYamlString(value, indent: indent + 2),
+        );
+      }
+    });
+
+    return buffer.toString();
+  }
+
+  String _mapDependenciesToYamlString(Map<dynamic, dynamic> yamlMap,
+      {int indent = 0}) {
+    final buffer = StringBuffer();
+    final spaces = ' ' * indent;
+
+    List<dynamic> dependencies =
+        yamlMap.containsKey("list") ? yamlMap["list"] : [];
+
+    for (Map<String, dynamic> dependency in dependencies) {
+      buffer.writeln("$spaces${dependency["name"]}: ${dependency["version"]}");
+    }
+
+    if (dependencies.isNotEmpty) {
+      yamlMap.remove("list");
+    }
+
+    yamlMap.forEach((key, value) {
+      if (key.contains(RegExp(r'^space[0-9]+$'))) {
+        buffer.writeln(spaces);
+      } else if (key.contains(RegExp(r'^comment[0-9]+$'))) {
+        buffer.writeln(spaces + value["content"]);
       }
     });
 

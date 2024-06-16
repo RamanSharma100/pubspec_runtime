@@ -8,4 +8,11 @@
 /// [pubspec_runtime_base.dart].
 library pubspec_runtime;
 
-export 'src/pubspec_runtime_base.dart' show PubspecEditor;
+export 'src/pubspec_runtime_base.dart'
+    show
+        PubspecEditor,
+        watchForDependencyDownloads,
+        isDependencyDownloading,
+        runPubGet;
+export "src/dependency.dart";
+export "src/parser.dart" show Parser;
